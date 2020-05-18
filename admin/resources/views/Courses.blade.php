@@ -113,6 +113,52 @@
 
 
 
+<div class="modal fade" id="updateCourseModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">Update Course</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body  text-center">
+      
+      <h5 id="courseEditId" class="mt-4 d-none">  </h5>
+
+       <div id="courseEditForm" class="container d-none">
+
+        <div class="row">
+          <div class="col-md-6">
+          <input id="CourseNameUpdateId" type="text" id="" class="form-control mb-3" placeholder="Course Name">
+          <input id="CourseDesUpdateId" type="text" id="" class="form-control mb-3" placeholder="Course Description">
+          <input id="CourseFeeUpdateId" type="text" id="" class="form-control mb-3" placeholder="Course Fee">
+          <input id="CourseEnrollUpdateId" type="text" id="" class="form-control mb-3" placeholder="Total Enroll">
+          </div>
+          <div class="col-md-6">
+          <input id="CourseClassUpdateId" type="text" id="" class="form-control mb-3" placeholder="Total Class">      
+          <input id="CourseLinkUpdateId" type="text" id="" class="form-control mb-3" placeholder="Course Link">
+          <input id="CourseImgUpdateId" type="text" id="" class="form-control mb-3" placeholder="Course Image">
+          </div>
+        </div>
+       </div>
+
+          <img id="courseEditLoader" class="loading-icon m-5" src="{{asset('images/loader.svg')}}">
+          <h5 id="courseEditWrong" class="d-none">Something Went Wrong !</h5>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-primary" data-dismiss="modal">Cancel</button>
+        <button  id="CourseUpdateConfirmBtn" type="button" class="btn  btn-sm  btn-danger">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
 
 
 @endsection
@@ -122,8 +168,114 @@
 <script type="text/javascript">
 
 
+//Course data edit korar 1st function code 
+function updateConfirmBtn(detailsId) {
+    axios.post('/CourseDeatails', {
+            id: detailsId
+        })
+        .then(function(response) {
+            if (response.status == 200) {
+                $('#courseEditForm').removeClass('d-none');
+                $('#courseEditLoader').addClass('d-none');
 
- //delete ar modal ar yes button ar jonno click function
+                var jsonData = response.data;
+                $('#CourseNameUpdateId').val(jsonData[0].course_name);
+                $('#CourseDesUpdateId').val(jsonData[0].course_desc);
+                $('#CourseFeeUpdateId').val(jsonData[0].course_fee);
+                $('#CourseEnrollUpdateId').val(jsonData[0].course_totalenroll);
+                $('#CourseClassUpdateId').val(jsonData[0].course_totalclass);
+                $('#CourseLinkUpdateId').val(jsonData[0].course_link);
+                $('#CourseImgUpdateId').val(jsonData[0].course_image);
+            } else {
+                $('#courseEditLoader').addClass('d-none');
+                $('#courseEditWrong').removeClass('d-none');
+            }
+
+        }).catch(function(error) {
+            $('#courseEditLoader').addClass('d-none');
+            $('#courseEditWrong').removeClass('d-none');
+        });
+
+}
+
+
+//update ar modal ar save button ar jonno click function
+$('#CourseUpdateConfirmBtn').click(function() {
+    var courseID = $('#courseEditId').html();
+    var courseName = $('#CourseNameUpdateId').val();
+    var courseDesc = $('#CourseDesUpdateId').val();
+    var courseFee = $('#CourseFeeUpdateId').val();
+    var courseEnroll = $('#CourseEnrollUpdateId').val();
+    var courseClass = $('#CourseClassUpdateId').val();
+    var courseLink = $('#CourseLinkUpdateId').val();
+    var courseImage = $('#CourseImgUpdateId').val();
+    CourseUpdate(courseID, courseName, courseDesc, courseFee, courseEnroll, courseClass, courseLink, courseImage);
+
+})
+
+
+//data update korar function code
+
+function CourseUpdate(courseID, courseName, courseDesc, courseFee, courseEnroll, courseClass, courseLink, courseImage) {
+
+    if (courseName.length == 0) {
+        toastr.error('Course Name is Empty !');
+    } else if (courseDesc.length == 0) {
+        toastr.error('Course Description is Empty !');
+    } else if (courseFee.length == 0) {
+        toastr.error('Course Fee is Empty !');
+    } else if (courseEnroll.length == 0) {
+        toastr.error('Course Enroll is Empty !');
+    } else if (courseClass.length == 0) {
+        toastr.error('Course Class is Empty !');
+    } else if (courseLink.length == 0) {
+        toastr.error('Course Link is Empty !');
+    } else if (courseImage.length == 0) {
+        toastr.error('Course Image is Empty !');
+    } else {
+
+        $('#CourseUpdateConfirmBtn').html("<div class='spinner-border spinner-border-sm' role='status'></div>")
+        axios.post('/Courseupdate', {
+            id: courseID,
+            course_name: courseName,
+            course_desc: courseDesc,
+            course_fee: courseFee,
+            course_totalenroll: courseEnroll,
+            course_totalclass: courseClass,
+            course_link: courseLink,
+            course_image: courseImage,
+
+        }).then(function(response) {
+            $('#CourseUpdateConfirmBtn').html("Save");
+            if (response.status == 200) {
+                if (response.data == 1) {
+                    $('#updateCourseModal').modal('hide');
+                    toastr.success('Update success');
+                    CoursesData();
+                } else {
+                    $('#updateCourseModal').modal('hide');
+                    toastr.error('Update fail');
+                    CoursesData();
+                }
+            } else {
+                $('#updateCourseModal').modal('hide');
+                toastr.error('Something went wrong');
+
+            }
+        }).catch(function(error) {
+            $('#updateCourseModal').modal('hide');
+            toastr.error('Something went wrong');
+        });
+
+
+    }
+
+}
+
+
+
+
+//delete ar modal ar yes button ar jonno click function
 $('#coursedeleteConfirm').click(function() {
     var id = $('#courseDeleteId').html();
     CourseDeleteConfirm(id);
@@ -131,16 +283,16 @@ $('#coursedeleteConfirm').click(function() {
 })
 
 
-function CourseDeleteConfirm(courseDeleteId){
-  $('#coursedeleteConfirm').html("<div class='spinner-border spinner-border-sm' role='status'></div>");
-  axios.post('/CourseDelete', {
+function CourseDeleteConfirm(courseDeleteId) {
+    $('#coursedeleteConfirm').html("<div class='spinner-border spinner-border-sm' role='status'></div>");
+    axios.post('/CourseDelete', {
             id: courseDeleteId
         })
         .then(function(response) {
             $('#coursedeleteConfirm').html("Yes");
             if (response.data == 1) {
                 $('#courseDeleteModal').modal('hide');
-                toastr.success('Delete Success.');             
+                toastr.success('Delete Success.');
                 CoursesData();
             } else {
                 $('#courseDeleteModal').modal('hide');
@@ -159,9 +311,6 @@ function CourseDeleteConfirm(courseDeleteId){
 
 
 
-
-
-
 //add course portion
 $('#addCourseBtn').click(function() {
     $('#addCourseModal').modal('show');
@@ -169,26 +318,22 @@ $('#addCourseBtn').click(function() {
 })
 
 $('#CourseAddConfirmBtn').click(function() {
-  var CourseName=$('#CourseNameId').val();
-  var CourseDesc=$('#CourseDesId').val();
-  var CourseFee=$('#CourseFeeId').val();
-  var CourseEnroll=$('#CourseEnrollId').val();    
-  var CourseClass=$('#CourseClassId').val();
-  var CourseLink=$('#CourseLinkId').val();
-  var CourseImage=$('#CourseImgId').val();
-  
-  AddCourse(CourseName,CourseDesc,CourseFee,CourseEnroll,CourseClass,CourseLink,CourseImage);
+    var CourseName = $('#CourseNameId').val();
+    var CourseDesc = $('#CourseDesId').val();
+    var CourseFee = $('#CourseFeeId').val();
+    var CourseEnroll = $('#CourseEnrollId').val();
+    var CourseClass = $('#CourseClassId').val();
+    var CourseLink = $('#CourseLinkId').val();
+    var CourseImage = $('#CourseImgId').val();
+
+    AddCourse(CourseName, CourseDesc, CourseFee, CourseEnroll, CourseClass, CourseLink, CourseImage);
 })
 
 
 
 
-
-
-
-
 //data add korar function code 
-function AddCourse(CourseName,CourseDesc,CourseFee,CourseEnroll,CourseClass,CourseLink,CourseImage) {
+function AddCourse(CourseName, CourseDesc, CourseFee, CourseEnroll, CourseClass, CourseLink, CourseImage) {
 
     $('#CourseAddConfirmBtn').html("<div class='spinner-border spinner-border-sm' role='status'></div>");
 
@@ -199,47 +344,46 @@ function AddCourse(CourseName,CourseDesc,CourseFee,CourseEnroll,CourseClass,Cour
         toastr.error('course description can not be empty.');
     } else if (CourseFee == 0) {
         toastr.error('course fee can not be empty.');
-    }else if (CourseEnroll == 0) {
+    } else if (CourseEnroll == 0) {
         toastr.error('course emroll can not be empty.');
-    }else if (CourseClass == 0) {
+    } else if (CourseClass == 0) {
         toastr.error('course class can not be empty.');
-    }else if (CourseLink == 0) {
+    } else if (CourseLink == 0) {
         toastr.error('course link can not be empty.');
-    }else if (CourseImage == 0) {
+    } else if (CourseImage == 0) {
         toastr.error('course image can not be empty.');
-    }
-     else {
+    } else {
         axios.post('/CourseAddFinal', {
 
-            course_name: CourseName,
-            course_desc: CourseDesc,
-            course_fee: CourseFee,
-            course_totalenroll: CourseEnroll,
-            course_totalclass: CourseClass,
-            course_link: CourseLink,
-            course_image: CourseImage,   
+                course_name: CourseName,
+                course_desc: CourseDesc,
+                course_fee: CourseFee,
+                course_totalenroll: CourseEnroll,
+                course_totalclass: CourseClass,
+                course_link: CourseLink,
+                course_image: CourseImage,
             })
             .then(function(response) {
                 $('#CourseAddConfirmBtn').html("Save");
                 if (response.status == 200) {
 
                     if (response.data == 1) {
-                      $('#addCourseModal').modal('hide');
-                      toastr.success('Add Success');
-                      CoursesData();
+                        $('#addCourseModal').modal('hide');
+                        toastr.success('Add Success');
+                        CoursesData();
                     } else {
-                      $('#addCourseModal').modal('hide');
-                      toastr.error('Add Fail');
-                       CoursesData();
+                        $('#addCourseModal').modal('hide');
+                        toastr.error('Add Fail');
+                        CoursesData();
                     }
                 } else {
-                  $('#addCourseModal').modal('hide');
-                   toastr.error('Something Went Wrong !');
+                    $('#addCourseModal').modal('hide');
+                    toastr.error('Something Went Wrong !');
                 }
 
             }).catch(function(error) {
-              $('#addCourseModal').modal('hide');
-             toastr.error('Something Went Wrong !');
+                $('#addCourseModal').modal('hide');
+                toastr.error('Something Went Wrong !');
 
             });
 
@@ -247,13 +391,6 @@ function AddCourse(CourseName,CourseDesc,CourseFee,CourseEnroll,CourseClass,Cour
 
 
 }
-
-
-
-
-
-
-
 
 
 
@@ -289,16 +426,26 @@ function CoursesData() {
 
 
                 $('.CourseDeleteBtn').click(function() {
-                
-               var id = $(this).data('id');
-                $('#courseDeleteId').html(id);
-                $('#courseDeleteModal').modal('show');
+
+                    var id = $(this).data('id');
+                    $('#courseDeleteId').html(id);
+                    $('#courseDeleteModal').modal('show');
+                })
+
+
+                $('.CourseUpdateBtn').click(function() {
+
+                    var id = $(this).data('id');
+                    updateConfirmBtn(id);
+                    $('#courseEditId').html(id);
+                    $('#updateCourseModal').modal('show');
                 })
 
 
 
-            }else{
-              $('#CoursewrongDiv').removeClass('d-none');
+
+            } else {
+                $('#CoursewrongDiv').removeClass('d-none');
                 $('#CourseloaderDiv').addClass('d-none');
             }
 
@@ -306,7 +453,6 @@ function CoursesData() {
 
         });
 }
-
             
 
 
